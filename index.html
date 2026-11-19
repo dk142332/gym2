@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <!-- 모바일 뷰포트 최적화 및 확대 방지 설정 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>GymMate - AI 헬스장 기구 인식 & 맞춤 루틴</title>
+  <!-- 외부 스타일시트 연결 -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- 모바일 앱 컨테이너 (최대 너비 제한으로 데스크톱에서도 앱 형태 유지) -->
+  <div class="app-container">
+    
+    <!-- 상단 헤더 영역 -->
+    <header class="app-header">
+      <div class="header-content">
+        <h1 class="logo">🏋️‍♂️ GymMate</h1>
+        <span class="badge-beta">초보자 가이드</span>
+      </div>
+    </header>
+
+    <!-- 메인 콘텐츠 영역 (단계별 화면 전환) -->
+    <main class="app-main">
+      
+      <!-- [1단계] 기구 이미지 인식 뷰 -->
+      <section id="view-step1" class="view-section active" aria-label="1단계 기구 인식">
+        <div class="section-intro">
+          <h2>어떤 기구인지 궁금하신가요?</h2>
+          <p>헬스장 기구 사진을 올리면 사용법과 주의사항을 바로 알려드려요.</p>
+        </div>
+
+        <!-- 에러 알림 배너 (파일 형식/용량 초과/API 오류 등 예외 발생 시 표시) -->
+        <div id="upload-error-banner" class="alert-banner alert-error hidden" role="alert"></div>
+
+        <!-- 이미지 업로드 및 미리보기 카드 영역 -->
+        <div class="upload-card" id="upload-dropzone">
+          <!-- 1) 초기 업로드 안내 상태 -->
+          <div class="upload-placeholder" id="upload-placeholder">
+            <span class="upload-icon">📷</span>
+            <p class="upload-title">기구 사진 촬영 또는 앨범에서 선택</p>
+            <p class="upload-desc">JPG, PNG, WEBP 지원 (최대 10MB)</p>
+          </div>
+
+          <!-- 2) 이미지 선택 후 미리보기 상태 (초기 숨김) -->
+          <div class="preview-wrapper hidden" id="image-preview-wrapper">
+            <div class="preview-image-box">
+              <img id="equipment-preview-img" src="" alt="선택된 헬스장 기구 미리보기" />
+              <button type="button" class="btn-remove-image" id="btn-remove-image" aria-label="이미지 삭제">✕</button>
+            </div>
+            <p class="image-meta-info" id="image-meta-info"></p>
+          </div>
+
+          <!-- 실제 파일 입력 요소 (모바일 카메라 직접 호출 지원) -->
+          <input 
+            type="file" 
+            id="equipment-image-input" 
+            accept="image/jpeg, image/png, image/webp" 
+            capture="environment" 
+            hidden 
+          />
+
+          <!-- 액션 버튼 그룹 -->
+          <div class="upload-actions" id="upload-initial-actions">
+            <button type="button" class="btn btn-primary" id="btn-select-image">
+              사진 선택 / 촬영하기
+            </button>
+          </div>
+
+          <div class="upload-actions-row hidden" id="upload-preview-actions">
+            <button type="button" class="btn btn-secondary" id="btn-reselect-image">
+              다시 선택
+            </button>
+            <button type="button" class="btn btn-primary" id="btn-analyze-equipment">
+              🔍 AI 기구 분석하기
+            </button>
+          </div>
+        </div>
+
+        <!-- AI 분석 중 로딩 스피너 (초기 숨김) -->
+        <div id="analysis-loading" class="loading-card hidden" aria-live="polite">
+          <div class="spinner"></div>
+          <p class="loading-title">AI 트레이너가 기구를 분석하고 있어요...</p>
+          <p class="loading-desc">타겟 근육과 초보자 안전 세팅법을 정리 중입니다 (약 2~4초 소요)</p>
+        </div>
+
+        <!-- AI 분석 결과 렌더링 영역 (초기 숨김) -->
+        <div id="analysis-result-container" class="result-container hidden"></div>
+      </section>
+
+      <!-- [2단계] 맞춤형 루틴 추천 뷰 (골격) -->
+      <section id="view-step2" class="view-section hidden" aria-label="2단계 맞춤 루틴">
+        <div class="section-intro">
+          <h2>맞춤형 운동 루틴</h2>
+          <p>기구와 운동 조건에 맞는 오늘의 루틴을 구성합니다.</p>
+        </div>
+        <div id="step2-selected-equipment-banner" class="info-banner hidden"></div>
+        <div class="placeholder-box">
+          1단계에서 기구를 먼저 인식하거나 루틴 조건을 설정해 주세요.
+        </div>
+      </section>
+
+      <!-- [3단계] 운동 기록 및 프로필 뷰 (골격) -->
+      <section id="view-step3" class="view-section hidden" aria-label="3단계 기록 및 프로필">
+        <div class="section-intro">
+          <h2>나의 운동 기록</h2>
+          <p>꾸준한 운동 출석과 중량 성장을 확인하세요.</p>
+        </div>
+        <div class="placeholder-box">
+          아직 저장된 운동 기록이 없습니다.
+        </div>
+      </section>
+
+    </main>
+
+    <!-- 하단 고정 탭 네비게이션 (모바일 한 손 조작성 최적화) -->
+    <nav class="bottom-nav" aria-label="주요 메뉴">
+      <button type="button" class="nav-item active" data-target="view-step1">
+        <span class="nav-icon">🔍</span>
+        <span class="nav-label">기구 인식</span>
+      </button>
+      <button type="button" class="nav-item" data-target="view-step2">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">맞춤 루틴</span>
+      </button>
+      <button type="button" class="nav-item" data-target="view-step3">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">내 기록</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- 메인 클라이언트 로직 스크립트 -->
+  <script src="script.js"></script>
+</body>
+</html>
